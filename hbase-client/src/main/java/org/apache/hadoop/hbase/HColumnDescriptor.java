@@ -42,6 +42,7 @@ import org.apache.hadoop.hbase.util.PrettyPrinter.Unit;
 @InterfaceAudience.Public
 @Deprecated // remove it in 3.0
 public class HColumnDescriptor implements ColumnFamilyDescriptor, Comparable<HColumnDescriptor> {
+  public static final String CACHE = ColumnFamilyDescriptorBuilder.CACHE;
   public static final String IN_MEMORY_COMPACTION = ColumnFamilyDescriptorBuilder.IN_MEMORY_COMPACTION;
   public static final String COMPRESSION = ColumnFamilyDescriptorBuilder.COMPRESSION;
   public static final String COMPRESSION_COMPACT = ColumnFamilyDescriptorBuilder.COMPRESSION_COMPACT;
@@ -717,6 +718,15 @@ public class HColumnDescriptor implements ColumnFamilyDescriptor, Comparable<HCo
    */
   public HColumnDescriptor setEncryptionType(String value) {
     getDelegateeForModification().setEncryptionType(value);
+    return this;
+  }
+
+  /**
+   * Set the cache name for use with this family
+   * @param value
+   */
+  public HColumnDescriptor setCacheName(String value) {
+    getDelegateeForModification().setCacheName(value);
     return this;
   }
 

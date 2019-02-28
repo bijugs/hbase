@@ -88,6 +88,9 @@ public class ColumnFamilyDescriptorBuilder {
   public static final String BLOCKCACHE = "BLOCKCACHE";
   private static final Bytes BLOCKCACHE_BYTES = new Bytes(Bytes.toBytes(BLOCKCACHE));
   @InterfaceAudience.Private
+  public static final String CACHE = "CACHE";
+  private static final Bytes CACHE_BYTES = new Bytes(Bytes.toBytes(CACHE));
+  @InterfaceAudience.Private
   public static final String CACHE_DATA_ON_WRITE = "CACHE_DATA_ON_WRITE";
   private static final Bytes CACHE_DATA_ON_WRITE_BYTES = new Bytes(Bytes.toBytes(CACHE_DATA_ON_WRITE));
   @InterfaceAudience.Private
@@ -301,6 +304,7 @@ public class ColumnFamilyDescriptorBuilder {
     DEFAULT_VALUES.put(PREFETCH_BLOCKS_ON_OPEN, String.valueOf(DEFAULT_PREFETCH_BLOCKS_ON_OPEN));
     DEFAULT_VALUES.put(NEW_VERSION_BEHAVIOR, String.valueOf(DEFAULT_NEW_VERSION_BEHAVIOR));
     DEFAULT_VALUES.keySet().forEach(s -> RESERVED_KEYWORDS.add(new Bytes(Bytes.toBytes(s))));
+    RESERVED_KEYWORDS.add(new Bytes(Bytes.toBytes(CACHE)));
     RESERVED_KEYWORDS.add(new Bytes(Bytes.toBytes(ENCRYPTION)));
     RESERVED_KEYWORDS.add(new Bytes(Bytes.toBytes(ENCRYPTION_KEY)));
     RESERVED_KEYWORDS.add(new Bytes(Bytes.toBytes(IS_MOB)));
@@ -479,6 +483,11 @@ public class ColumnFamilyDescriptorBuilder {
 
   public ColumnFamilyDescriptorBuilder setEncryptionType(String value) {
     desc.setEncryptionType(value);
+    return this;
+  }
+
+  public ColumnFamilyDescriptorBuilder setCacheName(String value) {
+    desc.setCacheName(value);
     return this;
   }
 
@@ -1251,6 +1260,16 @@ public class ColumnFamilyDescriptorBuilder {
      */
     public ModifyableColumnFamilyDescriptor setEncryptionType(String algorithm) {
       return setValue(ENCRYPTION_BYTES, algorithm);
+    }
+
+    /**
+     * Set the read cache name for use with this family
+     *
+     * @param cacheName
+     * @return this (for chained invocation)
+     */
+    public ModifyableColumnFamilyDescriptor setCacheName(String cacheName) {
+      return setValue(CACHE_BYTES, cacheName);
     }
 
     @Override

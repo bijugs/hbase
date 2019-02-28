@@ -969,6 +969,10 @@ module Hbase
           raise(ArgumentError, "Compression #{compression} is not supported. Use one of " + org.apache.hadoop.hbase.io.compress.Compression::Algorithm.constants.join(' '))
         end
       end
+      if arg.include?(org.apache.hadoop.hbase.HColumnDescriptor::CACHE)
+        cachename = arg.delete(org.apache.hadoop.hbase.HColumnDescriptor::CACHE).upcase
+        family.setCacheName(cachename)
+      end
       if arg.include?(org.apache.hadoop.hbase.HColumnDescriptor::ENCRYPTION)
         algorithm = arg.delete(org.apache.hadoop.hbase.HColumnDescriptor::ENCRYPTION).upcase
         family.setEncryptionType(algorithm)
