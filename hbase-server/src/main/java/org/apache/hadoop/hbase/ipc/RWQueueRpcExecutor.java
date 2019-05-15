@@ -50,21 +50,27 @@ public class RWQueueRpcExecutor extends RpcExecutor {
 
   public static final String CALL_QUEUE_READ_SHARE_CONF_KEY =
       "hbase.ipc.server.callqueue.read.ratio";
+  public static final String CALL_QUEUE_MULTIREAD_SHARE_CONF_KEY =
+	      "hbase.ipc.server.callqueue.multiread.ratio";
   public static final String CALL_QUEUE_SCAN_SHARE_CONF_KEY =
       "hbase.ipc.server.callqueue.scan.ratio";
 
   private final QueueBalancer writeBalancer;
   private final QueueBalancer readBalancer;
+  private final QueueBalancer multiReadBalancer;
   private final QueueBalancer scanBalancer;
   private final int writeHandlersCount;
   private final int readHandlersCount;
+  private final int multiReadHandlersCount;
   private final int scanHandlersCount;
   private final int numWriteQueues;
   private final int numReadQueues;
+  private final int numMultiReadQueues;
   private final int numScanQueues;
 
   private final AtomicInteger activeWriteHandlerCount = new AtomicInteger(0);
   private final AtomicInteger activeReadHandlerCount = new AtomicInteger(0);
+  private final AtomicInteger activeMultiReadHandlerCount = new AtomicInteger(0);
   private final AtomicInteger activeScanHandlerCount = new AtomicInteger(0);
 
   public RWQueueRpcExecutor(final String name, final int handlerCount, final int maxQueueLength,
@@ -72,6 +78,7 @@ public class RWQueueRpcExecutor extends RpcExecutor {
     super(name, handlerCount, maxQueueLength, priority, conf, abortable);
 
     float callqReadShare = conf.getFloat(CALL_QUEUE_READ_SHARE_CONF_KEY, 0);
+    float callqMultiReadShare = conf.getFloat(CALL_QUEUE_MULTIREAD_SHARE_CONF_KEY, 0);
     float callqScanShare = conf.getFloat(CALL_QUEUE_SCAN_SHARE_CONF_KEY, 0);
 
     numWriteQueues = calcNumWriters(this.numCallQueues, callqReadShare);
@@ -83,30 +90,40 @@ public class RWQueueRpcExecutor extends RpcExecutor {
     int scanQueues = Math.max(0, (int)Math.floor(readQueues * callqScanShare));
     int scanHandlers = Math.max(0, (int)Math.floor(readHandlers * callqScanShare));
 
-    if ((readQueues - scanQueues) > 0) {
-      readQueues -= scanQueues;
-      readHandlers -= scanHandlers;
+    int multiReadQueues = Math.max(0, (int)Math.floor(readQueues * callqMultiReadShare));
+    int multiReadHandlers = Math.max(0, (int)Math.floor(readHandlers * callqMultiReadShare));
+
+    if ((readQueues - (scanQueues + multiReadQueues)) > 0) {
+      readQueues -= (scanQueues + multiReadQueues);
+      readHandlers -= (scanHandlers + multiReadHandlers);
     } else {
       scanQueues = 0;
       scanHandlers = 0;
+      multiReadQueues = 0;
+      multiReadHandlers = 0;
     }
 
     numReadQueues = readQueues;
     readHandlersCount = readHandlers;
+    numMultiReadQueues = multiReadQueues;
+    multiReadHandlersCount = multiReadHandlers;
     numScanQueues = scanQueues;
     scanHandlersCount = scanHandlers;
 
     this.writeBalancer = getBalancer(numWriteQueues);
     this.readBalancer = getBalancer(numReadQueues);
+    this.multiReadBalancer = numMultiReadQueues > 0 ? getBalancer(numMultiReadQueues) : null;
     this.scanBalancer = numScanQueues > 0 ? getBalancer(numScanQueues) : null;
 
     initializeQueues(numWriteQueues);
     initializeQueues(numReadQueues);
+    initializeQueues(numMultiReadQueues);
     initializeQueues(numScanQueues);
 
     LOG.info(getName() + " writeQueues=" + numWriteQueues + " writeHandlers=" + writeHandlersCount
-      + " readQueues=" + numReadQueues + " readHandlers=" + readHandlersCount + " scanQueues="
-      + numScanQueues + " scanHandlers=" + scanHandlersCount);
+      + " readQueues=" + numReadQueues + " readHandlers=" + readHandlersCount
+      + " multiReadQueues=" + numMultiReadQueues + " multiReadHandlers=" + multiReadHandlersCount
+      + " scanQueues=" + numScanQueues + " scanHandlers=" + scanHandlersCount);
   }
 
   @Override
@@ -121,8 +138,12 @@ public class RWQueueRpcExecutor extends RpcExecutor {
       activeWriteHandlerCount);
     startHandlers(".read", readHandlersCount, queues, numWriteQueues, numReadQueues, port,
       activeReadHandlerCount);
+    if (numMultiReadQueues > 0) {
+        startHandlers(".multiread", multiReadHandlersCount, queues, numWriteQueues + numReadQueues,
+          numMultiReadQueues, port, activeMultiReadHandlerCount);
+    }
     if (numScanQueues > 0) {
-      startHandlers(".scan", scanHandlersCount, queues, numWriteQueues + numReadQueues,
+      startHandlers(".scan", scanHandlersCount, queues, numWriteQueues + numReadQueues + numMultiReadQueues,
         numScanQueues, port, activeScanHandlerCount);
     }
   }
@@ -134,7 +155,9 @@ public class RWQueueRpcExecutor extends RpcExecutor {
     if (isWriteRequest(call.getHeader(), call.getParam())) {
       queueIndex = writeBalancer.getNextQueue();
     } else if (numScanQueues > 0 && isScanRequest(call.getHeader(), call.getParam())) {
-      queueIndex = numWriteQueues + numReadQueues + scanBalancer.getNextQueue();
+      queueIndex = numWriteQueues + numReadQueues + numMultiReadQueues + scanBalancer.getNextQueue();
+    } else if (numMultiReadQueues > 0 && (call.getParam() instanceof MultiRequest) ) {
+      queueIndex = numWriteQueues + numReadQueues + multiReadBalancer.getNextQueue();
     } else {
       queueIndex = numWriteQueues + readBalancer.getNextQueue();
     }
@@ -158,7 +181,16 @@ public class RWQueueRpcExecutor extends RpcExecutor {
   @Override
   public int getReadQueueLength() {
     int length = 0;
-    for (int i = numWriteQueues; i < (numWriteQueues + numReadQueues); i++) {
+    for (int i = numWriteQueues; i < (numWriteQueues + numReadQueues + numMultiReadQueues); i++) {
+      length += queues.get(i).size();
+    }
+    return length;
+  }
+
+  @Override
+  public int getMultiReadQueueLength() {
+    int length = 0;
+    for (int i = numReadQueues; i < (numReadQueues + numMultiReadQueues); i++) {
       length += queues.get(i).size();
     }
     return length;
@@ -167,8 +199,8 @@ public class RWQueueRpcExecutor extends RpcExecutor {
   @Override
   public int getScanQueueLength() {
     int length = 0;
-    for (int i = numWriteQueues + numReadQueues;
-        i < (numWriteQueues + numReadQueues + numScanQueues); i++) {
+    for (int i = numWriteQueues + numReadQueues + numMultiReadQueues;
+        i < (numWriteQueues + numReadQueues + numMultiReadQueues + numScanQueues); i++) {
       length += queues.get(i).size();
     }
     return length;
@@ -176,8 +208,8 @@ public class RWQueueRpcExecutor extends RpcExecutor {
 
   @Override
   public int getActiveHandlerCount() {
-    return activeWriteHandlerCount.get() + activeReadHandlerCount.get()
-        + activeScanHandlerCount.get();
+    return getActiveWriteHandlerCount() + getActiveReadHandlerCount()
+    + getActiveMultiReadHandlerCount() + getActiveScanHandlerCount();
   }
 
   @Override
@@ -188,6 +220,11 @@ public class RWQueueRpcExecutor extends RpcExecutor {
   @Override
   public int getActiveReadHandlerCount() {
     return activeReadHandlerCount.get();
+  }
+
+  @Override
+  public int getActiveMultiReadHandlerCount() {
+    return activeMultiReadHandlerCount.get();
   }
 
   @Override

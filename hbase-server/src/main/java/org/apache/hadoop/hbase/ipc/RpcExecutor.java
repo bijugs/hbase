@@ -451,6 +451,10 @@ public abstract class RpcExecutor {
     return 0;
   }
 
+  public int getActiveMultiReadHandlerCount() {
+    return 0;
+  }
+
   public int getActiveScanHandlerCount() {
     return 0;
   }
@@ -465,6 +469,10 @@ public abstract class RpcExecutor {
   }
 
   public int getReadQueueLength() {
+    return 0;
+  }
+
+  public int getMultiReadQueueLength() {
     return 0;
   }
 
