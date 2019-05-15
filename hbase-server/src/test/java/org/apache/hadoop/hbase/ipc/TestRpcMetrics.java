@@ -79,9 +79,11 @@ public class TestRpcMetrics {
     HELPER.assertGauge("numActiveReplicationHandler", 203, serverSource);
     HELPER.assertGauge("numActiveWriteHandler", 50, serverSource);
     HELPER.assertGauge("numActiveReadHandler", 50, serverSource);
+    HELPER.assertGauge("numActiveMultiReadHandler", 5, serverSource);
     HELPER.assertGauge("numActiveScanHandler", 6, serverSource);
     HELPER.assertGauge("numCallsInWriteQueue", 50, serverSource);
     HELPER.assertGauge("numCallsInReadQueue", 50, serverSource);
+    HELPER.assertGauge("numCallsInMultiReadQueue", 5, serverSource);
     HELPER.assertGauge("numCallsInScanQueue", 2, serverSource);
   }
 

@@ -83,6 +83,11 @@ public class MetricsHBaseServerWrapperStub implements MetricsHBaseServerWrapper{
   public int getReadQueueLength() {
     return 50;
   }
+  
+  @Override
+  public int getMultiReadQueueLength() {
+    return 5;
+  }
 
   @Override
   public int getScanQueueLength() {
@@ -97,6 +102,11 @@ public class MetricsHBaseServerWrapperStub implements MetricsHBaseServerWrapper{
   @Override
   public int getActiveReadRpcHandlerCount() {
     return 50;
+  }
+  
+  @Override
+  public int getActiveMultiReadRpcHandlerCount() {
+    return 5;
   }
 
   @Override

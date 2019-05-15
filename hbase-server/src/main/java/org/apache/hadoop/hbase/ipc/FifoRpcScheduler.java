@@ -178,6 +178,11 @@ public class FifoRpcScheduler extends RpcScheduler {
   public int getReadQueueLength() {
     return 0;
   }
+  
+  @Override
+  public int getMultiReadQueueLength() {
+    return 0;
+  }
 
   @Override
   public int getScanQueueLength() {
@@ -191,6 +196,11 @@ public class FifoRpcScheduler extends RpcScheduler {
 
   @Override
   public int getActiveReadRpcHandlerCount() {
+    return 0;
+  }
+  
+  @Override
+  public int getActiveMultiReadRpcHandlerCount() {
     return 0;
   }
 

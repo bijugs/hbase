@@ -267,6 +267,11 @@ public class SimpleRpcScheduler extends RpcScheduler implements ConfigurationObs
   public int getReadQueueLength() {
     return callExecutor.getReadQueueLength();
   }
+  
+  @Override
+  public int getMultiReadQueueLength() {
+    return callExecutor.getMultiReadQueueLength();
+  }
 
   @Override
   public int getScanQueueLength() {
@@ -281,6 +286,11 @@ public class SimpleRpcScheduler extends RpcScheduler implements ConfigurationObs
   @Override
   public int getActiveReadRpcHandlerCount() {
     return callExecutor.getActiveReadHandlerCount();
+  }
+  
+  @Override
+  public int getActiveMultiReadRpcHandlerCount() {
+    return callExecutor.getActiveMultiReadHandlerCount();
   }
 
   @Override

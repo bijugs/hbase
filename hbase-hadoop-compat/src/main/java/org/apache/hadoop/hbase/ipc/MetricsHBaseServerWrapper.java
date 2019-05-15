@@ -52,12 +52,16 @@ public interface MetricsHBaseServerWrapper {
   int getWriteQueueLength();
 
   int getReadQueueLength();
+  
+  int getMultiReadQueueLength();
 
   int getScanQueueLength();
 
   int getActiveWriteRpcHandlerCount();
 
   int getActiveReadRpcHandlerCount();
+  
+  int getActiveMultiReadRpcHandlerCount();
 
   int getActiveScanRpcHandlerCount();
 

@@ -154,6 +154,14 @@ public class MetricsHBaseServerWrapperImpl implements MetricsHBaseServerWrapper 
     }
     return server.getScheduler().getReadQueueLength();
   }
+  
+  @Override
+  public int getMultiReadQueueLength() {
+    if (!isServerStarted() || this.server.getScheduler() == null) {
+      return 0;
+    }
+    return server.getScheduler().getMultiReadQueueLength();
+  }
 
   @Override
   public int getScanQueueLength() {
@@ -177,6 +185,14 @@ public class MetricsHBaseServerWrapperImpl implements MetricsHBaseServerWrapper 
       return 0;
     }
     return server.getScheduler().getActiveReadRpcHandlerCount();
+  }
+  
+  @Override
+  public int getActiveMultiReadRpcHandlerCount() {
+    if (!isServerStarted() || this.server.getScheduler() == null) {
+      return 0;
+    }
+    return server.getScheduler().getActiveMultiReadRpcHandlerCount();
   }
 
   @Override

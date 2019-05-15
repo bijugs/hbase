@@ -72,6 +72,9 @@ public interface MetricsHBaseServerSource extends ExceptionTrackingSource {
   String READ_QUEUE_NAME = "numCallsInReadQueue";
   String READ_QUEUE_DESC = "Number of calls in the read call queue; " +
     "parsed requests waiting in scheduler to be executed";
+  String MULTI_READ_QUEUE_NAME = "numCallsInMultiReadQueue";
+  String MULTI_READ_QUEUE_DESC = "Number of calls in the multi read call queue; " +
+    "parsed requests waiting in scheduler to be executed";
   String SCAN_QUEUE_NAME = "numCallsInScanQueue";
   String SCAN_QUEUE_DESC = "Number of calls in the scan call queue; " +
     "parsed requests waiting in scheduler to be executed";
@@ -89,6 +92,8 @@ public interface MetricsHBaseServerSource extends ExceptionTrackingSource {
   String NUM_ACTIVE_WRITE_HANDLER_DESC = "Number of active write rpc handlers.";
   String NUM_ACTIVE_READ_HANDLER_NAME = "numActiveReadHandler";
   String NUM_ACTIVE_READ_HANDLER_DESC = "Number of active read rpc handlers.";
+  String NUM_ACTIVE_MULTI_READ_HANDLER_NAME = "numActiveMultiReadHandler";
+  String NUM_ACTIVE_MULTI_READ_HANDLER_DESC = "Number of active multi read rpc handlers.";
   String NUM_ACTIVE_SCAN_HANDLER_NAME = "numActiveScanHandler";
   String NUM_ACTIVE_SCAN_HANDLER_DESC = "Number of active scan rpc handlers.";
   String NUM_GENERAL_CALLS_DROPPED_NAME = "numGeneralCallsDropped";

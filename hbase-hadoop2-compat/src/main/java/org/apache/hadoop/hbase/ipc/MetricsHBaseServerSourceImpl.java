@@ -174,12 +174,16 @@ public class MetricsHBaseServerSourceImpl extends ExceptionTrackingSourceImpl
               wrapper.getWriteQueueLength())
           .addGauge(Interns.info(READ_QUEUE_NAME, READ_QUEUE_DESC),
               wrapper.getReadQueueLength())
+          .addGauge(Interns.info(MULTI_READ_QUEUE_NAME, MULTI_READ_QUEUE_DESC),
+                  wrapper.getMultiReadQueueLength())
           .addGauge(Interns.info(SCAN_QUEUE_NAME, SCAN_QUEUE_DESC),
               wrapper.getScanQueueLength())
           .addGauge(Interns.info(NUM_ACTIVE_WRITE_HANDLER_NAME, NUM_ACTIVE_WRITE_HANDLER_DESC),
             wrapper.getActiveWriteRpcHandlerCount())
           .addGauge(Interns.info(NUM_ACTIVE_READ_HANDLER_NAME, NUM_ACTIVE_READ_HANDLER_DESC),
             wrapper.getActiveReadRpcHandlerCount())
+          .addGauge(Interns.info(NUM_ACTIVE_MULTI_READ_HANDLER_NAME, NUM_ACTIVE_MULTI_READ_HANDLER_DESC),
+                  wrapper.getActiveMultiReadRpcHandlerCount())
           .addGauge(Interns.info(NUM_ACTIVE_SCAN_HANDLER_NAME, NUM_ACTIVE_SCAN_HANDLER_DESC),
             wrapper.getActiveScanRpcHandlerCount())
           .addGauge(Interns.info(NETTY_DM_USAGE_NAME, NETTY_DM_USAGE_DESC),
